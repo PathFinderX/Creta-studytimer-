@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creta - Study Timer</title>
+    <!-- Fixed Font Awesome link -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --background: #f9fafb;
+            --card-bg: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .logo i {
+            margin-right: 0.5rem;
+            color: var(--accent);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .timer-section {
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .current-task {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--primary-dark);
+        }
+
+        .timer-display {
+            font-size: 4rem;
+            font-weight: 700;
+            margin: 1rem 0;
+            color: var(--primary);
+        }
+
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--background);
+        }
+
+        .schedule-section h2 {
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .day-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .day-tab {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .day-tab.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .day-tab:hover:not(.active) {
+            background-color: var(--background);
+        }
+
+        .schedule-grid {
+            border-radius: 0.5rem;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .schedule-item {
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            transition: background-color 0.2s ease;
+        }
+
+        .schedule-item:last-child {
+            border-bottom: none;
+        }
+
+        .schedule-item:hover {
+            background-color: var(--background);
+        }
+
+        .schedule-time {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .schedule-activity {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .subject-icon {
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .subject-icon i {
+            font-size: 1rem;
+        }
+
+        /* Subject-specific icon colors */
+        .subject-icon.math {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+
+        .subject-icon.physics {
+            background: linear-gradient(135deg, #ec4899, #be185d);
+        }
+
+        .subject-icon.chemistry {
+            background: linear-gradient(135deg, #10b981, #047857);
+        }
+
+        .subject-icon.biology {
+            background: linear-gradient(135deg, #84cc16, #4d7c0f);
+        }
+
+        .subject-icon.english {
+            background: linear-gradient(135deg, #f59e0b, #b45309);
+        }
+
+        .subject-icon.bangla {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+        }
+
+        .subject-icon.social {
+            background: linear-gradient(135deg, #06b6d4, #0e7490);
+        }
+
+        .subject-icon.religion {
+            background: linear-gradient(135deg, #9333ea, #6b21a8);
+        }
+
+        .subject-icon.ict {
+            background: linear-gradient(135deg, #475569, #1e293b);
+        }
+
+        .subject-icon.revision {
+            background: linear-gradient(135deg, #f43f5e, #be123c);
+        }
+
+        .schedule-item.break {
+            background-color: #f0f9ff;
+        }
+
+        .schedule-item.lunch {
+            background-color: #f0fdf4;
+        }
+
+        .progress-section {
+            margin-top: 1rem;
+        }
+
+        .progress-bar {
+            height: 0.75rem;
+            background-color: var(--border);
+            border-radius: 1rem;
+            overflow: hidden;
+            margin: 0.5rem 0 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            width: 0%;
+            border-radius: 1rem;
+            transition: width 0.3s ease;
+        }
+
+        .next-up {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .notification-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            max-width: 350px;
+            z-index: 1000;
+        }
+
+        .notification {
+            background-color: var(--card-bg);
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transform: translateX(120%);
+            animation: slideIn 0.3s forwards;
+            border-left: 4px solid var(--primary);
+        }
+
+        @keyframes slideIn {
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .notification.success {
+            border-left-color: var(--success);
+        }
+
+        .notification.warning {
+            border-left-color: var(--warning);
+        }
+
+        .notification-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--background);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .notification-icon.success {
+            color: var(--success);
+        }
+
+        .notification-icon.warning {
+            color: var(--warning);
+        }
+
+        .notification-text h3 {
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .notification-text p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        footer {
+            background-color: var(--card-bg);
+            padding: 1.5rem;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            margin-top: auto;
+        }
+
+        @media (max-width: 768px) {
+            .schedule-item {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            
+            .timer-display {
+                font-size: 3rem;
+            }
+            
+            .day-tabs {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo"><i class="fas fa-graduation-cap"></i>Creta</div>
+        <p>Your Smart Study Companion</p>
+    </header>
+
+    <div class="container">
+        <div class="card timer-section">
+            <div class="current-task">Select a day to begin</div>
+            <div class="timer-display">00:00:00</div>
+            <div class="progress-section">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="next-up">
+                    <span>Started: --:--</span>
+                    <span>Ends: --:--</span>
+                </div>
+            </div>
+            <div class="timer-controls">
+                <button class="btn btn-primary"><i class="fas fa-play"></i> Start</button>
+                <button class="btn btn-secondary"><i class="fas fa-pause"></i> Pause</button>
+                <button class="btn btn-secondary"><i class="fas fa-forward"></i> Skip</button>
+            </div>
+        </div>
+
+        <div class="card schedule-section">
+            <h2><i class="fas fa-calendar-alt"></i> Weekly Schedule</h2>
+            <div class="day-tabs">
+                <div class="day-tab">Monday</div>
+                <div class="day-tab">Tuesday</div>
+                <div class="day-tab">Wednesday</div>
+                <div class="day-tab">Thursday</div>
+                <div class="day-tab">Friday</div>
+                <div class="day-tab">Saturday</div>
+                <div class="day-tab">Sunday</div>
+            </div>
+            <div class="schedule-grid">
+                <!-- Schedule will be loaded here dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <div class="notification-container">
+        <!-- Notifications will appear here -->
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Creta - Smart Study Timer. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Request notification permission
+        document.addEventListener('DOMContentLoaded', function() {
+            if ("Notification" in window && Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+            initializeApp();
+        });
+
+        // Day schedules data
+        const daySchedules = {
+            'Monday': [
+                { time: '9:00 - 10:30', activity: 'Math (Algebra/Geometry problem-solving)', type: 'study', icon: 'calculator', subject: 'math' },
+                { time: '10:30 - 10:40', activity: 'Break', type: 'break', icon: 'coffee' },
+                { time: '10:40 - 12:00', activity: 'Physics (Theory + Numericals)', type: 'study', icon: 'atom', subject: 'physics' },
+                { time: '12:00 - 1:00', activity: 'Lunch + Rest', type: 'lunch', icon: 'utensils' },
+                { time: '1:00 - 2:00', activity: 'Chemistry (Chemical equations)', type: 'study', icon: 'flask', subject: 'chemistry' },
+                { time: '2:00 - 2:10', activity: 'Break', type: 'break', icon: 'coffee' },
+                { time: '2:10 - 3:10', activity: 'Biology (Human body chapter)', type: 'study', icon: 'dna', subject: 'biology' },
+                { time: '3:10 - 4:00', activity: 'ICT (Multimedia & Networking)', type: 'study', icon: 'laptop-code', subject: 'ict' }
+            ],
+            'Tuesday': [
+                { time: '9:00 - 10:30', activity: 'Chemistry (Periodic Table + Reactions)', type: 'study', icon: 'flask', subject: 'chemistry' },
+                { time: '10:30 - 10:40', activity: 'Break', type: 'break', icon: 'coffee' },
+                { time: '10:40 - 12:00', activity: 'Biology (Botany topics)', type: 'study', icon: 'seedling', subject: 'biology' },
+                { time: '12:00 - 1:00', activity: 'Lunch', type: 'lunch', icon: 'utensils' },
+                { time: '1:00 - 2:00', activity: 'Math (Trigonometry)', type: 'study', icon: 'square-root-variable', subject: 'math' },
+                { time: '2:00 - 2:10', activity: 'Break', type: 'break', icon: 'coffee' },
+                { time: '2:10 - 3:10', activity: 'Physics (Thermodynamics)', type: 'study', icon: 'temperature-high', subject: 'physics' },
+                { time: '3:10 - 4:00', activity: 'Bangla 2nd Paper (Sentence transformation)', type: 'study', icon: 'language', subject: 'bangla' }
+            ],
+            'Wednesday': [
+                { time: '9:00 - 10:30', activity: 'English (Grammar + Comprehension)', type: 'study', icon: 'book', subject: 'english' },
+                { time: '10:30 - 10:40', activity: 'Break', type: 'break', icon: 'coffee' },
+                { time: '10:40 - 12:00', activity: 'Bangla 2nd Paper (Essay + Grammar)', type: 'study', icon: 'pen-fancy', subject: 'bangla' },
+                { time: '12:00 - 1:00', activity: 'Lunch', type: 'lunch', icon: 'utensils' },
+                { time: '1:00 - 2:00', activity: 'Social Science (History of Bangladesh)', type: 'study', icon: 'landmark', subject: 'social' },
+                { time: '2:00 - 2:10', activity: 'Break', type: 'break', icon: 'coffee' },
+                { time: '2:10 - 3:10', activity: 'Religion (Core principles of Islam/Hinduism)', type: 'study', icon: 'pray', subject: 'religion' },
+                { time: '3:10 - 4:00', activity: 'ICT (Database Management)', type: 'study', icon: 'database', subject: 'ict' }
+            ],
+            'Thursday': [
+                { time: '9:00 - 10:30', activity: 'Physics (Electric circuits)', type: 'study', icon: 'bolt', subject: 'physics' },
+                { time: '10:30 - 10:40', activity: 'Break', type: 'break', icon: 'coffee' },
+                { time: '10:40 - 12:00', activity: 'Math (Algebraic formulas)', type: 'study', icon: 'superscript', subject: 'math' },
+                { time: '12:00 - 1:00', activity: 'Lunch', type: 'lunch', icon: 'utensils' },
+                { time: '1:00 - 2:00', activity: 'Chemistry (Acids and Bases)', type: 'study', icon: 'vial', subject: 'chemistry' },
+                { time: '2:00 - 2:10', activity: 'Break', type: 'break', icon: 'coffee' },
+                { time: '2:10 - 3:10', activity: 'Biology (Genetics)', type: 'study', icon: 'dna', subject: 'biology' },
+                { time: '3:10 - 4:00', activity: 'English (Letter Writing)', type: 'study', icon: 'envelope', subject: 'english' }
+            ],
+            'Friday': [
+                { time: '9:00 - 10:30', activity: 'Social Science (Economics + Geography)', type: 'study', icon: 'globe-americas', subject: 'social' },
+                { time: '10:30 - 10:40', activity: 'Break', type: 'break', icon: 'coffee' },
+                { time: '10:40 - 12:00', activity: 'Religion (Moral education)', type: 'study', icon: 'book-open', subject: 'religion' },
+                { time: '12:00 - 1:00', activity: 'Lunch', type: 'lunch', icon: 'utensils' },
+                { time: '1:00 - 2:00', activity: 'ICT (Programming concepts)', type: 'study', icon: 'code', subject: 'ict' },
+                { time: '2:00 - 2:10', activity: 'Break', type: 'break', icon: 'coffee' },
+                { time: '2:10 - 3:10', activity: 'Bangla 1st Paper (Prose + Poetry)', type: 'study', icon: 'feather-alt', subject: 'bangla' },
+                { time: '3:10 - 4:00', activity: 'Math (Mensuration)', type: 'study', icon: 'ruler-combined', subject: 'math' }
+            ],
+            'Saturday': [
+                { time: '9:00 - 10:30', activity: 'ICT (Practical computer applications)', type: 'study', icon: 'desktop', subject: 'ict' },
+                { time: '10:30 - 10:40', activity: 'Break', type: 'break', icon: 'coffee' },
+                { time: '10:40 - 12:00', activity: 'Revision of weak subjects', type: 'study', icon: 'sync', subject: 'revision' },
+                { time: '12:00 - 1:00', activity: 'Lunch', type: 'lunch', icon: 'utensils' },
+                { time: '1:00 - 4:00', activity: 'Weekly Mock Test (Practice MCQs on any 2 subjects)', type: 'study', icon: 'user-graduate', subject: 'revision' }
+            ],
+            'Sunday': [
+                { time: '9:00 - 12:00', activity: 'Revise important topics from the week', type: 'study', icon: 'book-reader', subject: 'revision' },
+                { time: '12:00 - 1:00', activity: 'Lunch', type: 'lunch', icon: 'utensils' },
+                { time: '1:00 - 4:00', activity: 'Light study (like Religion/Social Science)', type: 'study', icon: 'feather', subject: 'revision' }
+            ]
+        };
+
+        // Timer variables
+        let timerRunning = false;
+        let currentTaskIndex = 0;
+        let timeLeft = 0;
+        let timerInterval;
+        let currentDay = 'Monday';
+
+        // DOM elements
+        const startBtn = document.querySelector('.btn-primary');
+        const pauseBtn = document.querySelector('.btn-secondary');
+        const skipBtn = document.querySelectorAll('.btn-secondary')[1];
+        const timerDisplay = document.querySelector('.timer-display');
+        const currentTaskDisplay = document.querySelector('.current-task');
+        const progressFill = document.querySelector('.progress-fill');
+
+        // Initialize the app
+        function initializeApp() {
+            // Set Monday as default active tab
+            document.querySelector('.day-tab').classList.add('active');
+            updateSchedule('Monday');
+            
+            // Event listeners
+            startBtn.addEventListener('click', startTimer);
+            pauseBtn.addEventListener('click', pauseTimer);
+            skipBtn.addEventListener('click', skipToNextTask);
+
+            // Day tab switching
+            document.querySelectorAll('.day-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentDay = this.textContent;
+                    updateSchedule(currentDay);
+                });
+            });
+        }
+
+        // Update schedule grid and timer for selected day
+        function updateSchedule(day) {
+            currentDay = day;
+            currentTaskIndex = 0;
+            
+            // Update schedule grid
+            const scheduleGrid = document.querySelector('.schedule-grid');
+            scheduleGrid.innerHTML = '';
+            
+            daySchedules[day].forEach((item, index) => {
+                const scheduleItem = document.createElement('div');
+                scheduleItem.className = `schedule-item ${item.type}`;
+                
+                // Create activity content with icon
+                let activityContent = item.activity;
+                if (item.icon) {
+                    activityContent = `
+                        <div class="subject-icon ${item.subject || ''}">
+                            <i class="fas fa-${item.icon}"></i>
+                        </div>
+                        <span>${item.activity}</span>
+                    `;
+                }
+                
+                scheduleItem.innerHTML = `
+                    <div class="schedule-time">${item.time}</div>
+                    <div class="schedule-activity">${activityContent}</div>
+                `;
+                scheduleGrid.appendChild(scheduleItem);
+            });
+
+            // Initialize timer for first task
+            if (daySchedules[day].length > 0) {
+                initializeTimerForTask(0);
+            }
+        }
+
+        // Initialize timer for specific task
+        function initializeTimerForTask(taskIndex) {
+            const task = daySchedules[currentDay][taskIndex];
+            currentTaskDisplay.textContent = task.activity;
+            
+            const [start, end] = task.time.split(' - ');
+            const totalMinutes = parseTimeToMinutes(end) - parseTimeToMinutes(start);
+            timeLeft = totalMinutes * 60;
+            
+            document.querySelector('.next-up').innerHTML = `
+                <span>Started: ${start}</span>
+                <span>Ends: ${end}</span>
+            `;
+            
+            progressFill.style.width = '0%';
+            updateTimerDisplay();
+        }
+
+        // Helper: Convert "HH:MM" to minutes
+        function parseTimeToMinutes(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
+        // Update timer display
+        function updateTimerDisplay() {
+            const hours = Math.floor(timeLeft / 3600);
+            const minutes = Math.floor((timeLeft % 3600) / 60);
+            const seconds = timeLeft % 60;
+            
+            timerDisplay.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update progress
+            const task = daySchedules[currentDay][currentTaskIndex];
+            const [start, end] = task.time.split(' - ');
+            const totalSeconds = (parseTimeToMinutes(end) - parseTimeToMinutes(start)) * 60;
+            const progress = ((totalSeconds - timeLeft) / totalSeconds) * 100;
+            progressFill.style.width = `${progress}%`;
+        }
+
+        // Timer controls
+        function startTimer() {
+            if (!timerRunning) {
+                timerRunning = true;
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateTimerDisplay();
+                    } else {
+                        endCurrentTask();
+                    }
+                }, 1000);
+                startBtn.innerHTML = '<i class="fas fa-play"></i> Resume';
+            }
+        }
+
+        function pauseTimer() {
+            if (timerRunning) {
+                timerRunning = false;
+                clearInterval(timerInterval);
+                startBtn.innerHTML = '<i class="fas fa-play"></i> Resume';
+            }
+        }
+
+        function skipToNextTask() {
+            if (confirm("Are you sure you want to skip this task?")) {
+                endCurrentTask();
+            }
+        }
+
+        function endCurrentTask() {
+            pauseTimer();
+            const currentTask = daySchedules[currentDay][currentTaskIndex];
+            showNotification('Task Complete', `Finished: ${currentTask.activity}`, 'success');
+
+            // Move to next task
+            currentTaskIndex++;
+            if (currentTaskIndex < daySchedules[currentDay].length) {
+                initializeTimerForTask(currentTaskIndex);
+                const nextTask = daySchedules[currentDay][currentTaskIndex];
+                if (nextTask.type === 'break') {
+                    showNotification('Break Time!', 'Take a short break!', 'warning');
+                }
+            } else {
+                showNotification('Day Complete!', 'All tasks finished!', 'success');
+                timerDisplay.textContent = '00:00:00';
+                currentTaskDisplay.textContent = 'No more tasks today';
+            }
+        }
+
+        // Notification system
+        function showNotification(title, message, type) {
+            // Browser notification
+            if (Notification.permission === "granted") {
+                new Notification(title, { body: message });
+            }
+
+            // In-app notification
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <div class="notification-icon ${type}">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'bell'}"></i>
+                </div>
+                <div class="notification-text">
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+            
+            document.querySelector('.notification-container').appendChild(notification);
+            setTimeout(() => notification.remove(), 5000);
+        }
+    </script>
+</body>
+</html>
